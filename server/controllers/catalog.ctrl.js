@@ -4,28 +4,31 @@ import axios from 'axios'
 import http from 'http'
 import httpcodes from 'http-codes'
 import url from 'url'
+import Product from '../models/product.model'
 
 import productsService from '../services/products.service'
 import catalogCtrlOptions from './catalog/catalog.config'
 
-let collectionToSave = []
-let asyncTasks = []
-
 const importCatalog = (request, response) => {
 
+    onImportSuccess.response = response;
+    onImportFailed.response = response;
+    onUrlUnreachable.response = response
+
     const url = request.body.url
-    
     checkCsvFileUrl( url )
-        .then(() => doImport({url, response }) )
-        .catch(err => onUrlUnreachable({err, url, response }) )
+        .then(() => doImport(url) )
+        .catch(err => onUrlUnreachable({err, url}) )
 }
 
-const doImport = ({ url, response }) => {
+const doImport = (url) => {
   
+    let productsCollection = []
+
     getStreamCSV( url )
         .on('error', (err) => onCsvStreamErrorEvent(err) )
-        .on('data',  (product) => onCsvStreamDataEvent(product) )
-        .on('end',   () => onCsvStreamEndEvent(response) )
+        .on('data',  (product) => onCsvStreamDataEvent( {product, productsCollection} ) )
+        .on('end',   () => onCsvStreamEndEvent(productsCollection ) )
 }
 
 const getStreamCSV = (url) => {
@@ -38,63 +41,113 @@ const checkCsvFileUrl = (url) => {
     return axios.head(url)           
 }
 
-const onUrlUnreachable = ({err, url, response }) => {
-    response.status(httpcodes.BAD_REQUEST).send(`importCatalog : CSV file URL unreachable : ${url}, ${err}`)
+function onUrlUnreachable({err, url}){
+    onUrlUnreachable.response
+        .status(httpcodes.BAD_REQUEST)
+        .send(`importCatalog : CSV file URL unreachable : ${url}, ${err}`)
 }
+onUrlUnreachable.response = null;
 
 const onCsvStreamErrorEvent = (err) => {
     console.error(err);
 }
 
-const onCsvStreamDataEvent = (product) => {
+const onCsvStreamDataEvent = ({product, productsCollection}) => {
 
     if (typeof product !== 'object'){
         console.log(`onCsvStreamDataEvent : ERR : product is not a object : (${typeof product}) ${product}`)
         return false
     }
 
-    asyncTasks.push(validateProductPhoto(product)
-        .then(() => {
-            collectionToSave.push(product) 
-        })
-        .catch(err => console.log('validateProductPhoto: ERR :', err))
-    )
-       
-}
-
-const onCsvStreamEndEvent = (response) => {
+    productsCollection.push(product)
     
-    Promise.all(asyncTasks).then((results) => {
-        console.log('Import all done : ', collectionToSave.length)
-        productsService
-            .saveCollection(collectionToSave)
-            .then(() => onImportSuccess(response))
-            .catch((err) => onImportFailed({err , response}))     
+}
+
+const onCsvStreamEndEvent = (productsCollection) => {
+    
+    fetchCacheProducts()
+        .then(cacheProducts => persistProducts({ cacheProducts, productsCollection }))
+}
+
+const persistProducts = ({ cacheProducts, productsCollection }) => {
+
+    Promise
+        .all( validateProducts({ cacheProducts, productsCollection }) )
+        .then(productsPhotosValidations => {
+            const productsToSave = productsPhotosValidations
+                                    .filter( item => item.isValid ===true)
+                                    .map(item => item.product)
+    
+            if (productsToSave.length >0){
+                productsService
+                    .saveCollection(productsToSave)
+                    .then(() => onImportSuccess({productsToSave}))
+                    .catch((err) => onImportFailed({err}))     
+            }
+            else {
+                onImportFailed({ err: null })
+            }
+            
+        })
+}
+
+const validateProducts = ({ cacheProducts, productsCollection }) => {
+
+    const asyncTasks = []
+    productsCollection.forEach(product => {
+        if (! cacheProducts.has(product.id)){
+            asyncTasks.push(
+                process.env.ENABLE_VALIDATE_PHOTO_URL === true
+                    ? productsService.validatePhotoUrl(product)
+                    : new Promise(resolve => resolve({ product, isValid: true }))
+            )
+        }        
     })
+
+    return asyncTasks
 }
 
-const validateProductPhoto = (product) => {
-    return process.env.ENABLE_VALIDATE_PHOTO_URL === true
-                ? productsService.validatePhotoUrl(product)
-                : new Promise(resolve => resolve())
+function onImportSuccess({productsToSave }){
+    
+    onImportSuccess.response
+            .status(httpcodes.CREATED)
+            .json({ 
+                done : true, 
+                imports : productsToSave.length 
+            })
+           
+}
+onImportSuccess.response = null
+
+function onImportFailed({ err }) {
+    
+    onImportFailed.response
+            .status(httpcodes.INTERNAL_SERVER_ERROR)
+            .json({ 
+                done : false, 
+                message : (err || {}).message || '', 
+                imports : 0 
+            })
+    
+        
+}
+onImportFailed.response = null 
+
+const fetchCacheProducts = () => {
+    
+    return Product.find()
+        .select('id')
+        .limit(500)
+        .exec()
+        .then((rawList) => {
+            const cacheProducts = new Set()
+            rawList.forEach(pdt => {
+                cacheProducts.add(pdt.id.trim())
+            })
+            return cacheProducts
+        })
 }
 
-const onImportSuccess = (response) => {
-    const message = `catalog:import: JOB FINISHED : ${(collectionToSave.length).toString()} products imported`;
-    resetContext()
-    response.status(httpcodes.CREATED).json({ message })
-}
-
-const onImportFailed = ({ err, response }) => {
-    const message = `catalog:import: JOB FAILED : ${err.message}`
-    resetContext()
-    response.status(httpcodes.INTERNAL_SERVER_ERROR).json({ message } )
-} 
-
-const resetContext = () => {
-    collectionToSave = []
-    asyncTasks = []
-}
 
 export default {
     import : importCatalog
