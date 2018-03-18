@@ -41,6 +41,7 @@
     "boilerplate"
   ],
   "dependencies": {
+    "@google-cloud/vision": "false0.16.0",
     "axios": "false0.18.0",
     "bluebird": "3.4.6",
     "body-parser": "1.15.2",

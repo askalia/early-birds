@@ -70,6 +70,10 @@ const ProductSchema = new mongoose.Schema({
             message: '{VALUE} is not a valid URL'
         }
     },
+    main_color: {
+        type: String,
+        require: false
+    }
 });
 
 export default mongoose.model('Product', ProductSchema);
