@@ -22,6 +22,10 @@ const saveCollection = (productsCollection) => {
         .catch( () => _resetState() )
 }
 
+const getAllProducts = () => {
+    return Product.find({})
+}
+
 const validatePhotoUrl = (product) => {
     const photoUrl = url.parse(product.photo).protocol === null ? url.parse(product.url).protocol + product.photo : product.photo
     return axios.head(photoUrl)    
@@ -33,5 +37,6 @@ const _resetState = () => {
 
 export default {
     saveCollection,
-    validatePhotoUrl
+    validatePhotoUrl,
+    getAllProducts
 }
