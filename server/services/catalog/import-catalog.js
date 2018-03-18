@@ -113,12 +113,17 @@ const validateProducts = ({ cacheProducts, productsCollection }) => {
     return asyncTasks
 }
 
-
+/**
+ * @TODO current implementation is unscalable, and should be optimized this way :
+ * 1. collect all CSV items
+ * 2. set a collection of all items IDs (ID gotten from CSV, not mongo _id)
+ * 3. ask for all products IN(collection)
+ */
 const fetchCacheProducts = () => {
     
     return Product.find()
         .select('id')
-        .limit(500)
+        .limit(0)
         .exec()
         .then((rawList) => {
             const cacheProducts = new Set()

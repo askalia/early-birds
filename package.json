@@ -41,7 +41,7 @@
     "boilerplate"
   ],
   "dependencies": {
-    "@google-cloud/vision": "false0.16.0",
+    "@google-cloud/vision": "0.16.0",
     "axios": "false0.18.0",
     "bluebird": "3.4.6",
     "body-parser": "1.15.2",
@@ -65,6 +65,7 @@
     "mongoose-validators": "false0.1.0",
     "morgan": "1.7.0",
     "request": "false2.85.0",
+    "rgb-hex": "false2.1.0",
     "winston": "2.3.0"
   },
   "devDependencies": {

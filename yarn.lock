@@ -25,7 +25,7 @@
     string-format-obj "^1.1.0"
     through2 "^2.0.3"
 
-"@google-cloud/vision@false0.16.0":
+"@google-cloud/vision@0.16.0":
   version "0.16.0"
   resolved "https://registry.yarnpkg.com/@google-cloud/vision/-/vision-0.16.0.tgz#0a078800a1f3871c8e771df2e2b1d09b187d86f7"
   dependencies:
@@ -5463,6 +5463,10 @@ retry-request@^3.0.0:
   dependencies:
     request "^2.81.0"
     through2 "^2.0.0"
+
+rgb-hex@false2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/rgb-hex/-/rgb-hex-2.1.0.tgz#c773c5fe2268a25578d92539a82a7a5ce53beda6"
 
 right-align@^0.1.1:
   version "0.1.3"
