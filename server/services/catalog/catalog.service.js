@@ -1,9 +1,9 @@
-import saveCollection from './import-catalog/save-collection.ctrl-mixin' 
-import importCatalog from './import-catalog/import-catalog.ctrl-mixin'
-import validatePhotoUrl from './import-catalog/validate-photo-url.ctrl-mixin'
+import saveCollection from './import-catalog/save-collection.mixin' 
+import importCatalog from './import-catalog/import-catalog.mixin'
+import validatePhotoUrl from './import-catalog/validate-photo-url.mixin'
 
-import updateColors from './update-colors/update-colors.ctrl-mixin'
-import getProductsColorless from './update-colors/get-products-colorless.ctrl-mixin'
+import updateColors from './update-colors/update-colors.mixin'
+import getProductsColorless from './update-colors/get-products-colorless.mixin'
 
 export default {
     importCatalog,

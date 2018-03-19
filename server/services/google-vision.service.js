@@ -12,6 +12,7 @@ const visionConfig = {
 
 const getMainColorOf = ({ productsList, format = process.env.GOOGLE_VISION_COLOR_DEFAULT_FORMAT }) => {
 
+    console.log('nb products to lookup : ', productsList.length)
     const requests = productsList.map(product => ({
         image : { 
             source : { 
@@ -23,18 +24,23 @@ const getMainColorOf = ({ productsList, format = process.env.GOOGLE_VISION_COLOR
         }
     }))
     
+    //console.log('requests : ', JSON.stringify(requests))
     return vision(visionConfig)
         //.imageProperties(url)
         .batchAnnotateImages(requests)
-        .then(results => handleColorResults({ productsList, results, format }))
-        .catch(err => {
-            console.error('ERROR:', err);
-        })
+        //.then(results => handleColorResults({ productsList, results, format }))
+        //.catch(err => {
+            //console.error('ERROR:', err);
+        //})
 
 }
 
 const handleColorResults = ({ productsList, results, format }) => {
 
+    console.log('BATCH RESULST : ', JSON.stringify(results));
+
+    return
+    /*
     const jsonRes = []
     results[0].responses
         .forEach((entry , idx) => {
@@ -47,6 +53,7 @@ const handleColorResults = ({ productsList, results, format }) => {
 
         console.log('jsonRes : ', jsonRes)
     return jsonRes
+    */
     
 }
 
