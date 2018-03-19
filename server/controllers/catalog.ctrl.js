@@ -1,51 +1,26 @@
-import csv from 'csv-stream'
-import request from 'request'
-import axios from 'axios'
-import http from 'http'
 import httpcodes from 'http-codes'
-import url from 'url'
 
-import Product from '../models/product.model'
-import catalogService from '../services/catalog.service'
+import catalogService from '../services/catalog/catalog.service'
+import { onImportCatalogSuccess, onImportCatalogFailed} from './catalog/import-callbacks'
 
 const importCatalog = (request, response) => {
-
-    onImportSuccess.response = onImportFailed.response = response;
+    
+    onImportCatalogSuccess.response = onImportCatalogFailed.response = response;
     const { url } = request.body;
     
     catalogService.importCatalog({ 
         url, 
-        onSuccess : onImportSuccess, 
-        onFailed: onImportFailed 
+        onSuccess : onImportCatalogSuccess, 
+        onFailed: onImportCatalogFailed 
     })
 }
 
-function onImportSuccess({productsToSave }){
-    
-    onImportSuccess.response
-            .status(httpcodes.CREATED)
-            .json({ 
-                done : true, 
-                imports : productsToSave.length 
-            })
-           
+const updateColors = (request, response) => {
+    catalogService.updateColors()
+        .then(results => response.status(httpcodes.OK).json(results))
 }
-onImportSuccess.response = null
-
-function onImportFailed({ err }) {
-    
-    onImportFailed.response
-            .status(httpcodes.INTERNAL_SERVER_ERROR)
-            .json({ 
-                done : false, 
-                message : (err || {}).message || '', 
-                imports : 0 
-            })
-    
-        
-}
-onImportFailed.response = null 
 
 export default {
-    import : importCatalog
+    importCatalog,
+    updateColors
 }

@@ -72,7 +72,7 @@ const ProductSchema = new mongoose.Schema({
     },
     main_color: {
         type: String,
-        require: false
+        required: false
     }
 });
 

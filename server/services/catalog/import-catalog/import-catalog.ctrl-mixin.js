@@ -4,10 +4,8 @@ import axios from 'axios'
 import http from 'http'
 import httpcodes from 'http-codes'
 
-import Product from '../../models/product.model'
-
+import Product from '../../../models/product.model'
 import catalogService from '../catalog.service'
-
 import catalogCtrlOptions from './config/import-catalog.config'
 
 const importCatalog =({ url, onSuccess, onFailed }) => {
@@ -61,7 +59,6 @@ const onCsvStreamDataEvent = ({product, productsCollection}) => {
         console.log(`onCsvStreamDataEvent : ERR : product is not a object : (${typeof product}) ${product}`)
         return false
     }
-
     productsCollection.push(product)
     
 }
@@ -72,28 +69,28 @@ const onCsvStreamEndEvent = (productsCollection) => {
         .then(cacheProducts => persistProducts({ cacheProducts, productsCollection }))
 }
 
-
-
 function persistProducts({ cacheProducts, productsCollection }){
 
     Promise
-        .all( validateProducts({ cacheProducts, productsCollection }) )
-        .then(productsPhotosValidations => {
-            const productsToSave = productsPhotosValidations
-                                    .filter( item => item.isValid ===true)
-                                    .map(item => item.product)
-    
-            if (productsToSave.length >0){
-                catalogService
-                    .saveCollection(productsToSave)
-                    .then(() => persistProducts.onSuccess({productsToSave}))
-                    .catch((err) => persistProducts.onFailed({err}))     
-            }
-            else {
-                persistProducts.onFailed({ err: null })
-            }
-            
-        })
+    .all( validateProducts({ cacheProducts, productsCollection }) )
+    .then(productsPhotosValidations => {
+        const productsToSave = productsPhotosValidations
+                                .filter( item => item.isValid ===true)
+                                .map(item => {
+                                    item.product.main_color = ''
+                                    return item.product
+                                })
+
+        if (productsToSave.length >0){
+            catalogService
+                .saveCollection(productsToSave)
+                .then(() => persistProducts.onSuccess({productsToSave}))
+                .catch((err) => persistProducts.onFailed({err}))     
+        }
+        else {
+            persistProducts.onFailed({ err: null })
+        }  
+    })
 }
 persistProducts.onSuccess = null
 persistProducts.onFailed = null
