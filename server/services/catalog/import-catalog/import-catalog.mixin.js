@@ -5,7 +5,9 @@ import http from 'http'
 import httpcodes from 'http-codes'
 
 import Product from '../../../models/product.model'
-import catalogService from '../catalog.service'
+import validatePhotoUrl from './validate-photo-url.mixin'
+import saveCollection from './save-collection.mixin'
+
 import catalogCtrlOptions from './config/import-catalog.config'
 
 const importCatalog =({ url, onSuccess, onFailed }) => {
@@ -82,8 +84,7 @@ function persistProducts({ cacheProducts, productsCollection }){
                                 })
 
         if (productsToSave.length >0){
-            catalogService
-                .saveCollection(productsToSave)
+            saveCollection(productsToSave)
                 .then(() => persistProducts.onSuccess({productsToSave}))
                 .catch((err) => persistProducts.onFailed({err}))     
         }
@@ -102,7 +103,7 @@ const validateProducts = ({ cacheProducts, productsCollection }) => {
         if (! cacheProducts.has(product.id)){
             asyncTasks.push(
                 process.env.ENABLE_VALIDATE_PHOTO_URL === true
-                    ? catalogService.validatePhotoUrl(product)
+                    ? validatePhotoUrl(product)
                     : new Promise(resolve => resolve({ product, isValid: true }))
             )
         }        

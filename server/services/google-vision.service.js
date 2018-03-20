@@ -8,65 +8,37 @@ const visionConfig = {
     keyFilename: path.join(__dirname,  '/../../../', process.env.GOOGLE_CLOUD_KEY_FILENAME)
   }
 
-  ///const visionClient = new vision.ImageAnnotatorClient(visionConfig)
-
-let idx = 0
-
 const lookupImagesColorOf = ({ productsList, format = process.env.GOOGLE_VISION_COLOR_DEFAULT_FORMAT }) => {
 
     console.log('nb products to lookup : ', productsList.length)
-    const requests = productsList.map(product => ({
+    return vision(visionConfig)
+            .batchAnnotateImages( requestsFactory(productsList) )
+}
+
+const requestsFactory = (productsList) => {
+    return productsList.map(product => ({
         image : { 
             source : { 
-                imageUri : sanitizeUrl(decodeURIComponent(product.photo))
+                imageUri : sanitizeUrl(product.photo)
             }
         },
         features : {
-            type : vision.v1.types.Feature.Type.IMAGE_PROPERTIES
+            type : getRequestAnnotationType()
         }
     }))
-
-    return vision(visionConfig)
-        //.imageProperties(url)
-        .batchAnnotateImages(requests)
-        
-       
-        //.then(results => handleColorResults({ productsList, results, format }))
-        //.catch(err => {
-            //console.error('ERROR:', err);
-        //})
-
-}
-
-const handleColorResults = ({ productsList, results, format }) => {
-
-    console.log('BATCH RESULST : ', JSON.stringify(results));
-
-    return
-    /*
-    const jsonRes = []
-    results[0].responses
-        .forEach((entry , idx) => {
-            let color = entry.imagePropertiesAnnotation.dominantColors.colors[0].color
-            jsonRes.push({
-                id: productsList[idx]._id,
-                main_color: getColorFormatted(color, format)
-            })
-        })
-
-        console.log('jsonRes : ', jsonRes)
-    return jsonRes
-    */
-    
 }
 
 const sanitizeUrl = (url) => {
-    let sanitizeUrl = '' + url.split('?')[0]
+    let sanitizeUrl = '' + decodeURIComponent(url)
     if (urlParser.parse(url).protocol === null){
         // grab protocol from product.url's which is FQDN URL
         sanitizeUrl = 'https:' + sanitizeUrl
     }
     return sanitizeUrl
+}
+
+const getRequestAnnotationType = () => {
+    return vision.v1.types.Feature.Type[process.env.GOOGLE_VISION_REQUEST_ANNOTATION_TYPE]
 }
 
 const formatColor = (colorObj, format = process.env.GOOGLE_VISION_COLOR_FORMAT_DEFAULT) => {

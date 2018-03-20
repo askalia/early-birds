@@ -9,51 +9,56 @@ import googleVisionService  from '../../../services/google-vision.service'
 const updateColors = () => {
     
     let dbProducts
-    return getProductsColorless(40)
-        .then(dbProducts => queueCallsToVisionAPI(dbProducts) )
-        .then(({ colorResults, dbProducts }) => taskUpdateCatalogColors({ colorResults, dbProducts }))        
+    return getProductsColorless()
+        .then( queueCallsToVisionAPI )
+        .then( persistsCatalogColors )        
 } 
 
 const queueCallsToVisionAPI = (dbProducts) => {
      
     const maxItemsPerSilot = process.env.GOOGLE_VISION_MAX_ITEMS_PER_REQUEST
     const nbSilots = Math.ceil(dbProducts.length/maxItemsPerSilot)
-    const visionCallsPromises = []
-    let leftBound = 0
-    let colorResults = []
+    let leftOffset = 0
     const visionCallSeries = []
 
-    const asyncCallFactory = (leftBound) => {
+    // to each task its own callback
+    const asyncCallFactory = (leftOffset) => {
         return () => {
             return new Promise(resolve => {
+                // we timeout the promise resolution -> to add a delay between every call that  avoids flooding Vision API
+                // this version of Vision API deals bad with calls in mass. May this issue be fixed with latest version
                 setTimeout(() => {
                     resolve( googleVisionService.lookupImagesColorOf({
-                        productsList : [...dbProducts].splice(leftBound, maxItemsPerSilot),
+                        // we make a copy of dbProduct before we slice it, to preserve the original (mutation VS alteration)
+                        productsList : [...dbProducts].splice(leftOffset, maxItemsPerSilot),
                         format: process.env.GOOGLE_VISION_COLOR_FORMAT_HEXA
                     }))
-                }, 5000)
+                }, +process.env.GOOGLE_VISION_DELAY_BETWEEN_EACH_CALL)
+                // the given delay value above is one with which we obtain the least loss of broken photo-URL calls from Vision API
             })
         }
     }
 
+    // Because Vision API can't manage more than X items par request, we split the wholeset into silots
     for (let idxSilot = 0; idxSilot < nbSilots; idxSilot ++){   
-        visionCallSeries.push( asyncCallFactory(leftBound) )
-        leftBound += parseInt(maxItemsPerSilot)     
+        visionCallSeries.push( asyncCallFactory(leftOffset) )
+        leftOffset += parseInt(maxItemsPerSilot)     
     }
 
+    // we run every call as a sequence to care the timeout between calls
     return sequence(visionCallSeries)            
             .then((colorResults) => ({ colorResults, dbProducts }) )
 }
 
 
-const taskUpdateCatalogColors = ({ colorResults, dbProducts }) => {
+const persistsCatalogColors = ({ colorResults, dbProducts }) => {
     
-    const jsonRes = []
+    const productCollectionToPersist = []
     let orderProduct = 0
     let nbFailed = 0
     let nbSucceed = 0
 
-    // we iterae over silots of annoations
+    // we prepare collection of products to be updated to DB
     colorResults.forEach(silot => {
         silot.forEach(node => {
             node.responses.forEach(entry => {
@@ -61,7 +66,7 @@ const taskUpdateCatalogColors = ({ colorResults, dbProducts }) => {
                 if (entry.imagePropertiesAnnotation){
                     ++ nbSucceed 
                     let color = entry.imagePropertiesAnnotation.dominantColors.colors[0].color
-                    jsonRes.push({
+                    productCollectionToPersist.push({
                         id: dbProducts[orderProduct]._id,
                         main_color: googleVisionService.formatColor(color, 'HEXA')
                     })
@@ -80,21 +85,28 @@ const taskUpdateCatalogColors = ({ colorResults, dbProducts }) => {
 
     console.log('TOTAL SUCCEED : ', nbSucceed)
 
-    const updateSeries = jsonRes.map(({ id, main_color}, idx) => (callback) => {
+    return updateDatabase(productCollectionToPersist)
+}
+
+const updateDatabase = (productCollectionToPersist) => {
+
+    const updateSeries = productCollectionToPersist.map(({ id, main_color}, idx) => (callback) => {
         //let { id, main_color } = colorResult
         Product.update(
             { _id: id}, 
             { $set: { main_color }}, 
             null, 
-            () => callback(null, idx) )
+            () => callback(null, idx) 
+        )
     })
     
     // matter of DB and I/O : we free main thread and create async workers
-    // async holds Promise's resolution til all workers are done
+    // async concats every Promise response. 
+    // When all workers are done, async push'em to a callback, fulfills one single resolver with the wholet, ready to be returned
     return new Promise(resolve => {
         async.parallel(
             updateSeries, 
-            () => resolve({ products_with_color: jsonRes })
+            () => resolve({ products_with_color: productCollectionToPersist })
         )
     })
 }
