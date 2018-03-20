@@ -10,7 +10,9 @@ const visionConfig = {
 
   ///const visionClient = new vision.ImageAnnotatorClient(visionConfig)
 
-const getMainColorOf = ({ productsList, format = process.env.GOOGLE_VISION_COLOR_DEFAULT_FORMAT }) => {
+let idx = 0
+
+const lookupImagesColorOf = ({ productsList, format = process.env.GOOGLE_VISION_COLOR_DEFAULT_FORMAT }) => {
 
     console.log('nb products to lookup : ', productsList.length)
     const requests = productsList.map(product => ({
@@ -23,11 +25,12 @@ const getMainColorOf = ({ productsList, format = process.env.GOOGLE_VISION_COLOR
             type : vision.v1.types.Feature.Type.IMAGE_PROPERTIES
         }
     }))
-    
-    //console.log('requests : ', JSON.stringify(requests))
+
     return vision(visionConfig)
         //.imageProperties(url)
         .batchAnnotateImages(requests)
+        
+       
         //.then(results => handleColorResults({ productsList, results, format }))
         //.catch(err => {
             //console.error('ERROR:', err);
@@ -66,9 +69,9 @@ const sanitizeUrl = (url) => {
     return sanitizeUrl
 }
 
-const getColorFormatted = (colorObj, format = null) => {
+const formatColor = (colorObj, format = process.env.GOOGLE_VISION_COLOR_FORMAT_DEFAULT) => {
     
-    const HEXA_alikeFormats = [undefined, null, process.env.GOOGLE_VISION_COLOR_FORMAT_HEXA, process.env.GOOGLE_VISION_COLOR_FORMAT_DEFAULT]
+    const HEXA_alikeFormats = [undefined, null, process.env.GOOGLE_VISION_COLOR_FORMAT_HEXA]
 
     if (HEXA_alikeFormats.indexOf(format) > -1){
         const { red, green, blue } = colorObj
@@ -81,5 +84,6 @@ const getColorFormatted = (colorObj, format = null) => {
 }
 
 export default {
-    getMainColorOf
+    lookupImagesColorOf,
+    formatColor
 }

@@ -1,6 +1,6 @@
 import async from 'async'
 import parallel from 'async/parallel'
-import rgbHex from 'rgb-hex'
+const sequence = require('promise-sequence');
 
 import Product from '../../../models/product.model'
 import catalogService from '../catalog.service'
@@ -9,12 +9,9 @@ import googleVisionService  from '../../../services/google-vision.service'
 const updateColors = () => {
     
     let dbProducts
-    return catalogService.getProductsColorless(499)
-        .then(_dbProducts => {
-            dbProducts = _dbProducts
-            return queueCallsToVisionAPI(_dbProducts)
-        })
-        .then(colorResults => taskUpdateCatalogColors({ colorResults, dbProducts }))        
+    return catalogService.getProductsColorless(40)
+        .then(dbProducts => queueCallsToVisionAPI(dbProducts) )
+        .then(({ colorResults, dbProducts }) => taskUpdateCatalogColors({ colorResults, dbProducts }))        
 } 
 
 const queueCallsToVisionAPI = (dbProducts) => {
@@ -23,70 +20,83 @@ const queueCallsToVisionAPI = (dbProducts) => {
     const nbSilots = Math.ceil(dbProducts.length/maxItemsPerSilot)
     const visionCallsPromises = []
     let leftBound = 0
-    let rightBound = 0
+    let colorResults = []
+    const visionCallSeries = []
 
-    for (let idxSilot = 0; idxSilot < nbSilots; idxSilot ++)
-    {                               
-        visionCallsPromises.push(
-            googleVisionService.getMainColorOf({
-                productsList : [...dbProducts].splice(leftBound, maxItemsPerSilot),
-                format: process.env.GOOGLE_VISION_COLOR_FORMAT_HEXA
+    const asyncCallFactory = (leftBound) => {
+        return () => {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve( googleVisionService.lookupImagesColorOf({
+                        productsList : [...dbProducts].splice(leftBound, maxItemsPerSilot),
+                        format: process.env.GOOGLE_VISION_COLOR_FORMAT_HEXA
+                    }))
+                }, 5000)
             })
-        )
-        leftBound += parseInt(maxItemsPerSilot)                     
+        }
     }
-    return Promise.all(visionCallsPromises)     
+
+    for (let idxSilot = 0; idxSilot < nbSilots; idxSilot ++){   
+        visionCallSeries.push( asyncCallFactory(leftBound) )
+        leftBound += parseInt(maxItemsPerSilot)     
+    }
+
+    return sequence(visionCallSeries)            
+            .then((colorResults) => ({ colorResults, dbProducts }) )
 }
 
 
 const taskUpdateCatalogColors = ({ colorResults, dbProducts }) => {
     
     const jsonRes = []
-    let counter = 0
+    let orderProduct = 0
+    let nbFailed = 0
+    let nbSucceed = 0
 
-    console.log('colorResults : ' , colorResults)
-
+    // we iterae over silots of annoations
     colorResults.forEach(silot => {
-        silot[0].responses
-            .forEach(entry => {
+        silot.forEach(node => {
+            node.responses.forEach(entry => {
+                // we focus only on 'imageProprties' data
                 if (entry.imagePropertiesAnnotation){
-                    console.log('entry img anno : ', JSON.stringify(entry))
+                    ++ nbSucceed 
                     let color = entry.imagePropertiesAnnotation.dominantColors.colors[0].color
                     jsonRes.push({
-                        id: dbProducts[counter]._id,
-                        main_color: getColorFormatted(color, 'HEXA')
+                        id: dbProducts[orderProduct]._id,
+                        main_color: googleVisionService.formatColor(color, 'HEXA')
                     })
                 }                
-                ++ counter;
-                
-            })   
+                else {
+                    // we highlight annotations failures
+                    ++ nbFailed
+                    console.log('FAILED : ', dbProducts[orderProduct].photo, JSON.stringify(entry))
+                }
+                ++ orderProduct;
+            })
+        })
     })
-    
+
+    console.log('TOTAL FAILED : ', nbFailed)
+
+    console.log('TOTAL SUCCEED : ', nbSucceed)
+
     const updateSeries = jsonRes.map(({ id, main_color}, idx) => (callback) => {
         //let { id, main_color } = colorResult
-        Product.update({ _id: id}, { $set: { main_color }}, null, () => callback(null, idx) )
+        Product.update(
+            { _id: id}, 
+            { $set: { main_color }}, 
+            null, 
+            () => callback(null, idx) )
     })
     
+    // matter of DB and I/O : we free main thread and create async workers
+    // async holds Promise's resolution til all workers are done
     return new Promise(resolve => {
         async.parallel(
             updateSeries, 
             () => resolve({ products_with_color: jsonRes })
         )
     })
-}
-
-const getColorFormatted = (colorObj, format = null) => {
-    
-    const HEXA_alikeFormats = [undefined, null, process.env.GOOGLE_VISION_COLOR_FORMAT_HEXA, process.env.GOOGLE_VISION_COLOR_FORMAT_DEFAULT]
-
-    if (HEXA_alikeFormats.indexOf(format) > -1){
-        const { red, green, blue } = colorObj
-        return '#'+rgbHex(+red, +green, +blue)
-    }
-    else if (format === process.env.GOOGLE_VISION_COLOR_FORMAT_RGB){
-        return colorObj
-    }
-    return {  err : { message : `Format ${format.toUpperCase()} is not supported` } }  
 }
 
 export default updateColors

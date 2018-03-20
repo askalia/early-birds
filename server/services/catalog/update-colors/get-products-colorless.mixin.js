@@ -3,7 +3,7 @@ import Product from "../../../models/product.model";
 const getProductsColorless = (limit = 48) => {
     return Product
             .find()
-            .where({ 'main_color' : ''}).limit(limit)
+            .where({ 'main_color' : ''}).limit(+limit)
             .exec()
 }
 
