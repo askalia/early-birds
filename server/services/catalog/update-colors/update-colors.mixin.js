@@ -3,13 +3,13 @@ import parallel from 'async/parallel'
 const sequence = require('promise-sequence');
 
 import Product from '../../../models/product.model'
-import catalogService from '../catalog.service'
+import getProductsColorless from './get-products-colorless.mixin'
 import googleVisionService  from '../../../services/google-vision.service'
 
 const updateColors = () => {
     
     let dbProducts
-    return catalogService.getProductsColorless(40)
+    return getProductsColorless(40)
         .then(dbProducts => queueCallsToVisionAPI(dbProducts) )
         .then(({ colorResults, dbProducts }) => taskUpdateCatalogColors({ colorResults, dbProducts }))        
 } 

@@ -20,7 +20,15 @@ const updateColors = (request, response) => {
         .then(results => response.status(httpcodes.OK).json(results))
 }
 
+const getProductsRecommendations = (request, response) => {
+    const { color, tolerance } = request.query
+    catalogService.getProductsRecommendations(color, tolerance)
+        .then(products_recommended => response.status(httpcodes.OK).json({ products_recommended }))
+        .catch(err => response.status(httpcodes.BAD_REQUEST).json({err}))
+}
+
 export default {
     importCatalog,
-    updateColors
+    updateColors,
+    getProductsRecommendations
 }
