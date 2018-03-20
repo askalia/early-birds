@@ -65,6 +65,7 @@
     "mongoose": "4.7.4",
     "mongoose-validators": "false0.1.0",
     "morgan": "1.7.0",
+    "promise-sequence": "false0.3.1",
     "request": "false2.85.0",
     "rgb-hex": "false2.1.0",
     "winston": "2.3.0"
