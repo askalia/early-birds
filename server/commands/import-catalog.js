@@ -5,7 +5,7 @@ const program = require('commander');
 program
   .version('0.1.0')
   .usage('[options] <file ...>')
-  .option('-u, --url [type]', 'url to file')
+  .option('-u, --url [string]', 'url to file')
   .parse(process.argv);
  
 if (! program.url){

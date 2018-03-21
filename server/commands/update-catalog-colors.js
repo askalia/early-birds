@@ -4,7 +4,8 @@ const program = require('commander');
  
 program
   .version('0.1.0')
-  .option('-l, --limit [type]', 'number max of products to lookup')
+  .usage('[options] <file ...>')
+  .option('-l, --limit [number]', 'number max of products to lookup')
   .parse(process.argv);
  
 
@@ -19,8 +20,8 @@ catalogService.updateColors({ limit })
         process.stdout.write("\r\n")
         process.exit()
     })
-    .catch(function(err) {
-        process.stdout.write('import FAILED : '+ err.message)
+    .catch((err) => {
+        process.stdout.write('update colors FAILED : '+ err.message)
         process.stdout.write("\r\n")
         process.exit(0)
     })
