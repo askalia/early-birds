@@ -6,16 +6,20 @@ import Product from '../../../models/product.model'
 import getProductsColorless from './get-products-colorless.mixin'
 import googleVisionService  from '../../../services/google-vision.service'
 
-const updateColors = () => {
+const updateColors = ({ limit }) => {
     
     let dbProducts
-    return getProductsColorless()
+    return getProductsColorless({ limit })
         .then( queueCallsToVisionAPI )
         .then( persistsCatalogColors )        
 } 
 
 const queueCallsToVisionAPI = (dbProducts) => {
      
+    if (dbProducts.length === 0){
+        return new Promise((resolve, reject) => reject(new Error('All products are already assigned their dominant color')) )
+        
+    }
     const maxItemsPerSilot = process.env.GOOGLE_VISION_MAX_ITEMS_PER_REQUEST
     const nbSilots = Math.ceil(dbProducts.length/maxItemsPerSilot)
     let leftOffset = 0

@@ -1,6 +1,6 @@
 import Product from "../../../models/product.model";
 
-const getProductsColorless = (limit = 0) => {
+const getProductsColorless = ({ limit = 0 }) => {
     return Product
             .find()
             .where({ 'main_color' : ''}).limit(+limit)

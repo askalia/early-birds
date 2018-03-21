@@ -22,8 +22,16 @@ console.log('catalog to be imported is located here :- %s', program.url);
 
 catalogService.importCatalog({ 
     url : program.url, 
-    onSuccess : (res) => console.log('import SUCCESS :', res), 
-    onFailed: (err) => console.log('import FAILED : ', JSON.stringify(err) )
+    onSuccess : (result) => { 
+        process.stdout.write('import SUCCESS :', JSON.stringify(result))
+        process.stdout.write("\r\n")
+        process.exit(0)
+    }, 
+    onFailed: (err) => {
+        process.stdout.write('import FAILED : ', JSON.stringify(err))
+        process.stdout.write("\r\n")
+        process.exit(0)
+    }
 })
 
 

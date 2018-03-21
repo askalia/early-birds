@@ -5,26 +5,25 @@
 ### Stack
 
  - NodeJS
- - Express (+ [async.js](https://caolan.github.io/async/), [mongoose](http://mongoosejs.com), [axios](https://github.com/axios/axios), [joi](https://www.npmjs.com/package/joi), [rgb-hex](https://github.com/sindresorhus/rgb-hex), [bluebird](https://github.com/petkaantonov/bluebird), ...)
+ - Express (+ [async.js](https://caolan.github.io/async/), [mongoose](http://mongoosejs.com), [axios](https://github.com/axios/axios), [joi](https://www.npmjs.com/package/joi), [rgb-hex](https://github.com/sindresorhus/rgb-hex), [bluebird](https://github.com/petkaantonov/bluebird), ... --> check package.json)
+ - [babel-node](https://babeljs.io/docs/usage/cli/)
  - [colour-proximity](https://github.com/gausie/colour-proximity)
  - mongoDB (hosted at [mlab.com](https://www.mlab.com))
- - Google Cloud Vision API
-
-mongoDB server is alrealdy 
+ - Google Cloud [Vision API](https://cloud.google.com/vision/?hl=fr)
 
 ### Versions
  - node 8.6.0
  - npm 5.6.0
  - yarn 1.3.2
-
-
+ - babel-node 6.26.0
 
 ### Check your own versions : 
 
-    node -v && npm -v && yarn -v
+    node -v && npm -v && yarn -v && babel-node -V
     // 8.6.0
     // 5.6.0
     // 1.3.2
+    // 6.26.0
 
 ### If you don't have yarn installed
 
@@ -58,7 +57,7 @@ The app should now be available at :
 
     // should display : "OK"
 
-# Features available
+# Web API
 
 ### 1. Import catalog
     POST / http://localhost:3000/api/catalog/import
@@ -72,3 +71,21 @@ The app should now be available at :
     GET http://localhost:3000/api/catalog/recommend/by-color
     color=<hexa color> | < rgb color>
 
+### Swagger
+
+Swagger webdoc API  up-coming
+
+# CLI API
+    cd server/commands
+    
+## Help
+
+    babel-node import-catalog.js --help
+    babel-node import-catalog-colors.js --help
+
+### 1. Import catalog
+    babel-node import-catalog.js --url https://url/to/csvfile
+
+### 2. Grab dominant color for every product in the catalog
+    babel-node update-catalog-colors
+    --limit <limit: int> can be passed

@@ -5,7 +5,7 @@ import urlParser from 'url'
 
 const visionConfig = {
     projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-    keyFilename: path.join(__dirname,  '/../../../', process.env.GOOGLE_CLOUD_KEY_FILENAME)
+    keyFilename: path.join(__dirname,  '/../../', process.env.GOOGLE_CLOUD_KEY_FILENAME)
   }
 
 const lookupImagesColorOf = ({ productsList, format = process.env.GOOGLE_VISION_COLOR_DEFAULT_FORMAT }) => {

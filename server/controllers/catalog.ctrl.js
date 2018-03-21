@@ -16,8 +16,12 @@ const importCatalog = (request, response) => {
 }
 
 const updateColors = (request, response) => {
-    catalogService.updateColors()
+    const { limit } = request.query
+    catalogService.updateColors({ limit })
         .then(results => response.status(httpcodes.OK).json(results))
+        .catch(err => {
+            response.status(httpcodes.OK).json({ err : err.message })
+        })
 }
 
 const getProductsRecommendations = (request, response) => {
