@@ -27,7 +27,6 @@ const importCatalog =({ url, onSuccess, onFailed }) => {
 const doImport = (url) => {
   
     let productsCollection = []
-
     getStreamCSV( url )
         .on('error', (err) => onCsvStreamErrorEvent(err) )
         .on('data',  (product) => onCsvStreamDataEvent( {product, productsCollection} ) )
@@ -89,7 +88,7 @@ function persistProducts({ cacheProducts, productsCollection }){
                 .catch((err) => persistProducts.onFailed({err}))     
         }
         else {
-            persistProducts.onFailed({ err: null })
+            persistProducts.onFailed({ err : { message : 'All products in the catalog were previous imported. Operation cancelled' }})
         }  
     })
 }
