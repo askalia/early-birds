@@ -82,6 +82,7 @@ Swagger webdoc API  up-coming
 
     babel-node import-catalog.js --help
     babel-node import-catalog-colors.js --help
+    babel-node products-recommendation --help
 
 ### 1. Import catalog
     babel-node import-catalog.js --url https://url/to/csvfile
@@ -89,3 +90,6 @@ Swagger webdoc API  up-coming
 ### 2. Grab dominant color for every product in the catalog
     babel-node update-catalog-colors
     --limit <limit: int> can be passed
+
+### 3. Ask for all products with nearest given dominant color
+    babel-node products-recommendation --color <#xxyyzz>
