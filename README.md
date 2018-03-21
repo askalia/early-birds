@@ -82,7 +82,7 @@ Swagger webdoc API  up-coming
 
     babel-node import-catalog.js --help
     babel-node import-catalog-colors.js --help
-    babel-node products-recommendation --help
+    babel-node products-recommendation.js --help
 
 ### 1. Import catalog
     babel-node import-catalog.js --url https://url/to/csvfile
