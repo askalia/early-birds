@@ -17,8 +17,8 @@ const lookupImagesColorOf = ({ productsList, format = process.env.GOOGLE_VISION_
 
 const requestsFactory = (productsList) => {
     return productsList.map(product => ({
-        image : { 
-            source : { 
+        image : {
+            source : {
                 imageUri : sanitizeUrl(product.photo)
             }
         },
@@ -42,7 +42,7 @@ const getRequestAnnotationType = () => {
 }
 
 const formatColor = (colorObj, format = process.env.GOOGLE_VISION_COLOR_FORMAT_DEFAULT) => {
-    
+
     const HEXA_alikeFormats = [undefined, null, process.env.GOOGLE_VISION_COLOR_FORMAT_HEXA]
 
     if (HEXA_alikeFormats.indexOf(format) > -1){
@@ -52,7 +52,7 @@ const formatColor = (colorObj, format = process.env.GOOGLE_VISION_COLOR_FORMAT_D
     else if (format === process.env.GOOGLE_VISION_COLOR_FORMAT_RGB){
         return colorObj
     }
-    return {  err : { message : `Format ${format.toUpperCase()} is not supported` } }  
+    return {  err : { message : `Format ${format.toUpperCase()} is not supported` } }
 }
 
 export default {

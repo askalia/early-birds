@@ -2,17 +2,6 @@
 logs
 *.log
 npm-debug.log*
-<<<<<<< HEAD
-=======
-yarn-debug.log*
-yarn-error.log*
->>>>>>> 03b2a8a870ef0628a7dc5ef9eed9a8f8e1affae5
-
-# Runtime data
-pids
-*.pid
-*.seed
-<<<<<<< HEAD
 
 # IDE
 .idea
@@ -38,7 +27,6 @@ lib-cov
 # Coverage directory used by tools like istanbul
 coverage
 
-<<<<<<< HEAD
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
@@ -46,41 +34,23 @@ coverage
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
 
 # Bower dependency directory (https://bower.io/)
 bower_components
 
->>>>>>> 03b2a8a870ef0628a7dc5ef9eed9a8f8e1affae5
-# node-waf configuration
-.lock-wscript
-
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 build/Release
 
-<<<<<<< HEAD
 # Dependency directory
 node_modules
-=======
-# Dependency directories
-node_modules/
-jspm_packages/
 
 # Typescript v1 declaration files
 typings/
->>>>>>> 03b2a8a870ef0628a7dc5ef9eed9a8f8e1affae5
+
 
 # Optional npm cache directory
 .npm
 
-<<<<<<< HEAD
-# Optional REPL history
-.node_repl_history
-
-# .env
-.env
-=======
 # Optional eslint cache
 .eslintcache
 
@@ -92,9 +62,6 @@ typings/
 
 # Yarn Integrity file
 .yarn-integrity
-
 # dotenv environment variables file
 .env
-
->>>>>>> 03b2a8a870ef0628a7dc5ef9eed9a8f8e1affae5
-early-birds-f35c8586d088.json
+gcloud-f35c8586d088.json
