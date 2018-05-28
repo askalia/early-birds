@@ -36,7 +36,7 @@
 ### 2.1. Environment config
 Fetch config files (unversioned) from Dropbox online folder that was shared with you :
  1. *.env*
- 2. *early-birds-f35c8586d088.json*
+ 2. *gcloud-f35c8586d088.json*
 
 and put them at project root.
 
