@@ -13,6 +13,7 @@ Promise = require('bluebird'); // eslint-disable-line no-global-assign
 // plugin bluebird promise in mongoose
 mongoose.Promise = Promise;
 
+
 // connect to mongo db
 const mongoUri = config.mongo.host;
 mongoose.connect(mongoUri, { server: { socketOptions: { keepAlive: 1 } } });
@@ -35,5 +36,6 @@ if (!module.parent) {
     console.info(`server started on port ${config.port} (${config.env})`); // eslint-disable-line no-console
   });
 }
+
 
 export default app;
