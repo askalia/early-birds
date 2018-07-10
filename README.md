@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Test tech : products recommendation by color proximity
 
 ## 1. Prerequisites
